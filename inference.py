@@ -4,29 +4,6 @@ from scipy.linalg import solve_continuous_lyapunov
 from scipy.stats import multivariate_normal
 import scipy
 
-class sim(): 
-    def __init__(self, params, convert_params):
-        self.J, B = convert_params(params)
-        self.rv =  multivariate_normal([0, 0], B)
-        
-    def evolve(self, T, dt, n_frames, n_repeats):
-        results = [] 
-        for n in range(n_repeats): 
-            y = np.zeros((2))
-            res = np.zeros((n_frames, 2))
-            for i in range(n_frames):
-                for j in range(int(T/n_frames/dt)):
-                    self._update(y, dt)
-                res[i] = np.copy(y)
-            results.append(res.T) 
-        return results 
-
-
-    def _update(self, y, dt):
-        det = self.J @ y * dt 
-        sto = np.sqrt(dt)*self.rv.rvs()
-        y += det + sto 
-
 class inference():
     '''
     basic inference class that assumes a linear 6 parameter model 
@@ -142,3 +119,27 @@ class exact_inference(inference):
 
     def _outer(self, a, b): 
             return np.einsum('ij,kj->ik', a, b)
+        
+        
+class nonlinear_inference(inference):
+                   
+    def _minuslogP(self, params, trajs, dt):
+        '''
+        traj: 2 x T 
+        '''
+        J, B = self.convert_params(params)
+        b = params[4]
+        invB = np.linalg.inv(B*dt) 
+        _, norm = np.linalg.slogdet(invB)
+
+        minuslogp = 0 
+        for traj in trajs: 
+            N = traj.shape[-1] - 1
+            dx = traj[:, 1:] - traj[:, :-1]
+            det = J @ traj[:, :-1]
+            det[1] -= b*traj[1, :-1]**3 
+            diff = dx - det*dt 
+    
+            minuslogp += np.einsum('ji,jk,ki', diff, invB, diff)/2 
+            minuslogp -= N*norm/2
+        return minuslogp

@@ -35,7 +35,10 @@ def find_corr(x, y, norm=True):
         corr /= np.sqrt(np.mean(x**2))*np.sqrt(np.mean(y**2))
     return corr
 
-def plot_corr(data, N, dt, norm=True): 
+def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnightblue']): 
+    plt.rc('text', usetex=tex)
+    plt.rc('font', family='serif', size=20)
+    
     t = dt*np.arange(N)
     t1 = dt*np.arange(-N+1, N)
     L = len(data[0][0])
@@ -49,27 +52,23 @@ def plot_corr(data, N, dt, norm=True):
         theta_corrs.append(find_auto_corr(theta, norm=norm))
         p_corrs.append(find_auto_corr(p, norm=norm))
         cross_corrs.append(find_corr(theta, p, norm=norm))
-        axes[0].plot(t, theta_corrs[-1][:N])
-        axes[1].plot(t, p_corrs[-1][:N])
-        axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N])
-    axes[0].set_ylim([-0.5, 1])
-    axes[0].set_xlim([0, 100])
-    axes[1].set_xlim([0, 100])
-    axes[0].set_ylabel('theta correlation')
-    axes[1].set_ylabel('p correlation')
-    axes[2].set_ylabel('cross correlation')
-    plt.show()
+        axes[0].plot(t, theta_corrs[-1][:N], alpha=0.5, c=colors[0])
+        axes[1].plot(t, p_corrs[-1][:N], alpha=0.5, c=colors[0])
+        axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N], alpha=0.5, c=colors[0])
         
-    fig, axes = plt.subplots(1, 3, figsize=(20, 5))
-    axes[0].plot(t, np.mean(theta_corrs, axis=0)[:N])
-    axes[1].plot(t, np.mean(p_corrs, axis=0)[:N])
-    axes[2].plot(t1, np.mean(cross_corrs, axis=0)[L-N+1:L+N])
+    axes[0].plot(t, np.mean(theta_corrs, axis=0)[:N], c=colors[1])
+    axes[1].plot(t, np.mean(p_corrs, axis=0)[:N], c=colors[1])
+    axes[2].plot(t1, np.mean(cross_corrs, axis=0)[L-N+1:L+N], c=colors[1])
     axes[0].set_xlim([0, 100])
     axes[1].set_xlim([0, 100])
-    axes[0].set_ylabel('theta correlation')
-    axes[1].set_ylabel('p correlation')
-    axes[2].set_ylabel('cross correlation')
-    plt.show() 
+    axes[2].set_xlim([-100, 100])
+    axes[0].set_ylabel(r'$\theta$ autocorrelation')
+    axes[0].set_xlabel(r'$t$')
+    axes[1].set_ylabel(r'$p$ autocorrelation')
+    axes[1].set_xlabel(r'$t$')
+    axes[2].set_ylabel(r'cross correlation')
+    axes[2].set_xlabel(r'$t$')
+    plt.tight_layout()
     return theta_corrs, p_corrs, cross_corrs 
 
 def plot_corr_ft(data, dt): 
@@ -121,40 +120,47 @@ def show(data):
     plt.legend()
     plt.show()
 
-def plot_dist(data):
+def plot_dist(data, color='darkorange'):
+   
     fig, axes = plt.subplots(3, 8, sharey='row', sharex='row', figsize=(20, 8))
     for (i, d) in enumerate(data): 
         axes[0, i].hist2d(d[0], d[1], bins=20)
         axes[0, i].set_xlabel('theta')
         axes[0, i].set_ylabel('p')
-        axes[1, i].hist(d[1], bins=20, density=True)
-        axes[2, i].hist(d[0], bins=20, color='darkorange', density=True)
+        axes[1, i].hist(d[1], bins=20, color=color, density=True)
+        axes[2, i].hist(d[0], bins=20, color=color, density=True)
     axes[1, 0].set_ylabel('p pdf')
     axes[2, 0].set_ylabel('theta pdf')
     plt.tight_layout()
     plt.show() 
 
 
-def plot_overall_dist(data): 
+def plot_overall_dist(data, tex=False, color='darkorange'): 
+    plt.rc('text', usetex=tex)
+    plt.rc('font', family='serif', size=20)
+    
     thetas = np.concatenate([d[0] for d in data])
     ps = np.concatenate([d[1] for d in data])
 
-    fig, axes = plt.subplots(1, 3, figsize=(10, 3))
-    axes[0].hist2d(thetas, ps)
-    axes[0].set_xlabel(r'$\theta$')
-    axes[0].set_ylabel(r'$p$')
+    fig, axes = plt.subplots(1, 3, figsize=(20, 6))
+    _, _, _, im = axes[2].hist2d(thetas, ps, density=True, cmap='Greys', bins=30)
+    axes[2].set_xlabel(r'$\theta$')
+    axes[2].set_ylabel(r'$p$')
 
-    axes[1].hist(ps, bins=20, density=True)
+    axes[1].hist(ps, bins=40, density=True, color=color, alpha=0.8)
     axes[1].set_xlim([-1, 1])
     axes[1].set_xlabel(r'$p$')
-    axes[1].set_ylabel('pdf')
+    axes[1].set_ylabel(r'$P(p)$')
     
-    axes[2].hist(thetas, bins=20, density=True, color='darkorange')
-    axes[2].set_xlim([-0.5, 0.5])
-    axes[2].set_xlabel(r'$\theta$')
-    axes[2].set_ylabel('pdf')
+    axes[0].hist(thetas, bins=40, density=True, color=color, alpha=0.8)
+    axes[0].set_xlim([-0.5, 0.5])
+    axes[0].set_xlabel(r'$\theta$')
+    axes[0].set_ylabel(r'$P(\theta)$')
+    cbar = plt.colorbar(im, ax=axes[2])
+    cbar.set_label(r'$P(\theta, p)$', rotation=90)
     plt.tight_layout()
-    plt.show()
+    return fig, axes 
+
 
 def coarsen(array, N): 
     L = int(len(array)/N)

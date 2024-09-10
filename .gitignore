@@ -6,3 +6,6 @@
 .ipynb_checkpoints/parameter_sweep-checkpoint.ipynb
 /.virtual_documents
 /.ipynb_checkpoints
+.DS_Store
+.DS_Store
+bootstrap_output.txt
