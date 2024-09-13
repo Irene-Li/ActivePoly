@@ -35,7 +35,7 @@ def find_corr(x, y, norm=True):
         corr /= np.sqrt(np.mean(x**2))*np.sqrt(np.mean(y**2))
     return corr
 
-def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnightblue']): 
+def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnightblue'], n_trajs=8): 
     plt.rc('text', usetex=tex)
     plt.rc('font', family='serif', size=20)
     
@@ -48,13 +48,14 @@ def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnight
     theta_corrs = [] 
     p_corrs = [] 
     cross_corrs = [] 
-    for (theta, p) in data: 
+    for (i, (theta, p)) in enumerate(data): 
         theta_corrs.append(find_auto_corr(theta, norm=norm))
         p_corrs.append(find_auto_corr(p, norm=norm))
         cross_corrs.append(find_corr(theta, p, norm=norm))
-        axes[0].plot(t, theta_corrs[-1][:N], alpha=0.5, c=colors[0])
-        axes[1].plot(t, p_corrs[-1][:N], alpha=0.5, c=colors[0])
-        axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N], alpha=0.5, c=colors[0])
+        if i < n_trajs:
+            axes[0].plot(t, theta_corrs[-1][:N], alpha=0.5, c=colors[0])
+            axes[1].plot(t, p_corrs[-1][:N], alpha=0.5, c=colors[0])
+            axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N], alpha=0.5, c=colors[0])
         
     axes[0].plot(t, np.mean(theta_corrs, axis=0)[:N], c=colors[1])
     axes[1].plot(t, np.mean(p_corrs, axis=0)[:N], c=colors[1])
