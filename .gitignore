@@ -9,3 +9,4 @@
 .DS_Store
 .DS_Store
 bootstrap_output.txt
+__pycache__/*

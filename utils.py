@@ -125,7 +125,7 @@ def plot_dist(data, color='darkorange'):
    
     fig, axes = plt.subplots(3, 8, sharey='row', sharex='row', figsize=(20, 8))
     for (i, d) in enumerate(data): 
-        axes[0, i].hist2d(d[0], d[1], bins=20)
+        axes[0, i].hist2d(d[0], d[1], bins=20, color=color)
         axes[0, i].set_xlabel('theta')
         axes[0, i].set_ylabel('p')
         axes[1, i].hist(d[1], bins=20, color=color, density=True)
