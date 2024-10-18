@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.io import loadmat
 import os
+from matplotlib.colors import ListedColormap
 
 def chop(trajs): 
     '''
@@ -35,15 +36,16 @@ def find_corr(x, y, norm=True):
         corr /= np.sqrt(np.mean(x**2))*np.sqrt(np.mean(y**2))
     return corr
 
-def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnightblue'], n_trajs=8): 
-    plt.rc('text', usetex=tex)
-    plt.rc('font', family='serif', size=20)
-    
+def plot_corr(data, N, dt, norm=True, tex=False, colors=['copper', 'midnightblue'], n_trajs=8):     
     t = dt*np.arange(N)
     t1 = dt*np.arange(-N+1, N)
     L = len(data[0][0])
 
-    fig, axes = plt.subplots(1, 3, figsize=(20, 5)) 
+    continuous_cmap = plt.get_cmap(colors[0])
+    colorlist = continuous_cmap(np.linspace(0.3, 0.8, n_trajs))
+    discrete_cmap = ListedColormap(colorlist)
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5), width_ratios=[3, 1, 2]) 
     
     theta_corrs = [] 
     p_corrs = [] 
@@ -53,21 +55,21 @@ def plot_corr(data, N, dt, norm=True, tex=False, colors=['darkorange', 'midnight
         p_corrs.append(find_auto_corr(p, norm=norm))
         cross_corrs.append(find_corr(theta, p, norm=norm))
         if i < n_trajs:
-            axes[0].plot(t, theta_corrs[-1][:N], alpha=0.5, c=colors[0])
-            axes[1].plot(t, p_corrs[-1][:N], alpha=0.5, c=colors[0])
-            axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N], alpha=0.5, c=colors[0])
+            axes[0].plot(t, theta_corrs[-1][:N], alpha=0.6, c=discrete_cmap(i))
+            axes[1].plot(t, p_corrs[-1][:N], alpha=0.6, c=discrete_cmap(i))
+            axes[2].plot(t1, cross_corrs[-1][L-N+1:L+N], alpha=0.6, c=discrete_cmap(i))
         
-    axes[0].plot(t, np.mean(theta_corrs, axis=0)[:N], c=colors[1])
-    axes[1].plot(t, np.mean(p_corrs, axis=0)[:N], c=colors[1])
-    axes[2].plot(t1, np.mean(cross_corrs, axis=0)[L-N+1:L+N], c=colors[1])
-    axes[0].set_xlim([0, 100])
-    axes[1].set_xlim([0, 100])
-    axes[2].set_xlim([-100, 100])
+    axes[0].plot(t, np.mean(theta_corrs, axis=0)[:N], '--', c=colors[1])
+    axes[1].plot(t, np.mean(p_corrs, axis=0)[:N], '--', c=colors[1])
+    axes[2].plot(t1, np.mean(cross_corrs, axis=0)[L-N+1:L+N], '--', c=colors[1])
+    axes[0].set_xlim([0, 50])
+    axes[1].set_xlim([0, 10])
+    axes[2].set_xlim([-50, 50])
     axes[0].set_ylabel(r'$\theta$ autocorrelation')
     axes[0].set_xlabel(r'$t$')
     axes[1].set_ylabel(r'$p$ autocorrelation')
     axes[1].set_xlabel(r'$t$')
-    axes[2].set_ylabel(r'cross correlation')
+    axes[2].set_ylabel(r'cross-correlation')
     axes[2].set_xlabel(r'$t$')
     plt.tight_layout()
     return theta_corrs, p_corrs, cross_corrs 
@@ -135,16 +137,15 @@ def plot_dist(data, color='darkorange'):
     plt.tight_layout()
     plt.show() 
 
-
-def plot_overall_dist(data, tex=False, color='darkorange'): 
+def plot_overall_dist(data, tex=False, color='darkorange', cmap='Greys'): 
     plt.rc('text', usetex=tex)
-    plt.rc('font', family='serif', size=20)
+    plt.rc('font', family='sans serif', size=20)
     
     thetas = np.concatenate([d[0] for d in data])
     ps = np.concatenate([d[1] for d in data])
 
     fig, axes = plt.subplots(1, 3, figsize=(20, 6))
-    _, _, _, im = axes[2].hist2d(thetas, ps, density=True, cmap='Greys', bins=30)
+    _, _, _, im = axes[2].hist2d(thetas, ps, density=True, cmap=cmap, bins=30)
     axes[2].set_xlabel(r'$\theta$')
     axes[2].set_ylabel(r'$p$')
 
@@ -161,7 +162,6 @@ def plot_overall_dist(data, tex=False, color='darkorange'):
     cbar.set_label(r'$P(\theta, p)$', rotation=90)
     plt.tight_layout()
     return fig, axes 
-
 
 def coarsen(array, N): 
     L = int(len(array)/N)
