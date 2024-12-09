@@ -10,3 +10,4 @@
 .DS_Store
 bootstrap_output.txt
 __pycache__/*
+/Figures
