@@ -1,13 +1,8 @@
 
 /.ipynb_checkpoints
-/.virtual_documents
 /__pycache__
 .DS_Store
-.ipynb_checkpoints/parameter_sweep-checkpoint.ipynb
 /.virtual_documents
-/.ipynb_checkpoints
-.DS_Store
-.DS_Store
-bootstrap_output.txt
-__pycache__/*
+*.DS_Store
+*.txt
 /Figures
